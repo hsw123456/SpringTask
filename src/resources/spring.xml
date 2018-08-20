@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+
+
+    <!-- <task:scheduled-tasks>
+         <task:scheduled ref="taskJob" method="job1" cron="*/5 * * * * ?"/>
+         <task:scheduled ref="taskJob" method="job2" cron="*/10 * * * * ?"/>
+     </task:scheduled-tasks>-->
+   <!-- <task:annotation-driven/>
+
+    <bean id="myTask" class="com.hsw.testTask.TaskJob"/>
+    <task:scheduled-tasks>
+        <task:scheduled ref="myTask" method="job1" cron="*/5 * * * * ?"/>
+    </task:scheduled-tasks>
+
+    <context:component-scan base-package=" com.hsw.testTask"/>
+    -->
+    <!-- 方式1： 通过继承QuartzBean 并配置，实现更复杂的定时任务 -->
+    <bean id="exampleJobDetail" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
+        <property name="jobClass"  value="com.hsw.testQuartz.ExampleJob" />
+        <property name="jobDataAsMap" >
+            <map>
+                <entry key="timeout" value="5" />
+            </map>
+        </property>
+    </bean>
+
+    <bean id="myBean" class="com.hsw.testQuartz.MyBean">
+        <property name="message" value="hsw" />
+    </bean>
+
+    <!-- 方式2： 直接配置MethodInvokingJobDetailFactoryBean -->
+    <bean id="myJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="myBean"  />
+        <property name="targetMethod" value="printMessage" />
+    </bean>
+
+    <bean id="exampleJobTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
+        <property name="jobDetail" ref="exampleJobDetail" />
+        <!-- 延迟触发的时间-->
+        <property name="startDelay" value="10000"/>
+        <!-- 重复触发的时间间隔-->
+        <property name="repeatInterval" value="5000" />
+    </bean>
+
+    <bean id="cronTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="exampleJobDetail" />
+        <property name="cronExpression" value="*/7 * * * * ?" />
+    </bean>
+    <bean id="cronTrigger2" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="myJobDetail" />
+        <property name="cronExpression" value="*/9 * * * * ?" />
+    </bean>
+
+    <!-- 配置 ScheduleFactoryBean -->
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers" >
+            <list>
+                <ref bean="cronTrigger" />
+                <ref bean="cronTrigger2" />
+            </list>
+        </property>
+    </bean>
+</beans>
